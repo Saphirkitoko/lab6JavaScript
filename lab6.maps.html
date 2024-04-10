@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Longest US Bridges</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        #map { height: 500px; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<canvas id="myChart"></canvas>
+
+<script>
+    // Bridge data
+    const bridges = [
+        { name: "Verrazano-Narrows Bridge", city: "New York, NY", span: 1298.4, location: [40.6066, -74.0447] },
+        { name: "Golden Gate Bridge", city: "San Francisco and Marin, CA", span: 1280.2, location: [37.8199, -122.4783] },
+        { name: "Mackinac Bridge", city: "Mackinaw and St Ignace, MI", span: 1158.0, location: [45.8174, -84.7278] },
+        { name: "George Washington Bridge", city: "New York, NY and New Jersey, NJ", span: 1067.0, location: [40.8517, -73.9527] },
+        { name: "Tacoma Narrows Bridge", city: "Tacoma and Kitsap, WA", span: 853.44, location: [47.2690, -122.5517] }
+    ];
+
+    // Initialize Leaflet map
+    const map = L.map('map').setView([40.8, -98], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // Loop through bridges data to add markers
+    let longestBridgeIndex = 0;
+    let longestBridgeSpan = bridges[0].span;
+
+    bridges.forEach((bridge, index) => {
+        const markerIcon = L.icon({
+            iconUrl: 'bridge-icon.png',
+            iconSize: [22, 22],
+            iconAnchor: [12, 22],
+            popupAnchor: [0, -22]
+        });
+
+        const marker = L.marker(bridge.location, { icon: markerIcon }).addTo(map);
+        const popupContent = `\n\n
+        <div>\n  <h3>${bridge.name}</h3>\n
+        <p>City: ${bridge.city}</p>\n                    <p>Span: ${bridge.span} meters</p>\n
+        </div>\n            `;
+        marker.bindPopup(popupContent);
+
+        if (bridge.span > longestBridgeSpan) {
+            longestBridgeSpan = bridge.span;
+            longestBridgeIndex = index;
+        }
+    });
+
+    // Set a different marker/icon for the longest bridge
+    const longestBridge = bridges[longestBridgeIndex];
+    const longestBridgeMarker = map._layers[Object.keys(map._layers)[longestBridgeIndex + 1]];
+    const longestBridgeIcon = L.icon({
+        iconUrl: 'longest-bridge-icon.png',
+        iconSize: [22, 22],
+        iconAnchor: [12, 22],
+        popupAnchor: [0, -22]
+    });
+    longestBridgeMarker.setIcon(longestBridgeIcon);
+
+    // Initialize Chart.js chart
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: bridges.map(bridge => bridge.name),
+            datasets: [{
+                label: 'Span Length (meters)',
+                data: bridges.map(bridge => bridge.span),
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
